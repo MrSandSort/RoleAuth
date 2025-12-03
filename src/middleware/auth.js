@@ -1,7 +1,7 @@
 const jwt = require('jsonwebtoken');
 const { findUserById, roleRank } = require('../models/userModel');
 
-const authRequired = (req, res, next) => {
+const authRequired = async (req, res, next) => {
   const header = req.headers.authorization;
   if (!header) {
     return res.status(401).json({ error: 'Missing Authorization header' });
@@ -14,7 +14,7 @@ const authRequired = (req, res, next) => {
 
   try {
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    const user = findUserById(decoded.sub);
+    const user = await findUserById(decoded.sub);
     if (!user) {
       return res.status(401).json({ error: 'User not found' });
     }

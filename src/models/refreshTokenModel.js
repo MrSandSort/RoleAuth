@@ -1,33 +1,26 @@
-const db = require('../db');
+const { query } = require('../db');
 
-db.exec(`
-  CREATE TABLE IF NOT EXISTS refresh_tokens (
-    token TEXT PRIMARY KEY,
-    user_id INTEGER NOT NULL,
-    expires_at INTEGER NOT NULL,
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE CASCADE
-  );
-  CREATE INDEX IF NOT EXISTS idx_refresh_tokens_user_id ON refresh_tokens(user_id);
-`);
-
-const saveRefreshToken = (token, userId, expiresAt) => {
-  db.prepare('INSERT INTO refresh_tokens (token, user_id, expires_at) VALUES (?, ?, ?)').run(
-    token,
-    userId,
-    expiresAt
+const saveRefreshToken = async (token, userId, expiresAt) => {
+  await query(
+    'INSERT INTO refresh_tokens (token, user_id, expires_at) VALUES ($1, $2, $3)',
+    [token, userId, new Date(expiresAt)]
   );
   return { token, userId, expiresAt };
 };
 
-const findRefreshToken = (token) =>
-  db.prepare('SELECT token, user_id as userId, expires_at as expiresAt FROM refresh_tokens WHERE token = ?').get(token);
+const findRefreshToken = async (token) => {
+  const { rows } = await query(
+    'SELECT token, user_id AS "userId", extract(epoch from expires_at) * 1000 AS "expiresAt" FROM refresh_tokens WHERE token = $1',
+    [token]
+  );
+  return rows[0] || null;
+};
 
-const deleteRefreshToken = (token) =>
-  db.prepare('DELETE FROM refresh_tokens WHERE token = ?').run(token);
+const deleteRefreshToken = async (token) =>
+  query('DELETE FROM refresh_tokens WHERE token = $1', [token]);
 
-const purgeExpiredRefreshTokens = () =>
-  db.prepare('DELETE FROM refresh_tokens WHERE expires_at <= ?').run(Date.now());
+const purgeExpiredRefreshTokens = async () =>
+  query('DELETE FROM refresh_tokens WHERE expires_at <= NOW()');
 
 module.exports = {
   saveRefreshToken,

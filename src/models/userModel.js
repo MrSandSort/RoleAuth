@@ -1,32 +1,26 @@
-const db = require('../db');
+const { query } = require('../db');
 
 const roleRank = { user: 1, admin: 2, superadmin: 3 };
 
-// Ensure table exists on module load so dependent code can rely on it.
-db.exec(`
-  CREATE TABLE IF NOT EXISTS users (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    email TEXT NOT NULL UNIQUE,
-    password_hash TEXT NOT NULL,
-    role TEXT NOT NULL CHECK(role IN ('user', 'admin', 'superadmin')),
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+const findUserByEmail = async (email) => {
+  const { rows } = await query(
+    'SELECT id, email, password_hash AS "passwordHash", role FROM users WHERE email = $1',
+    [email]
   );
-`);
+  return rows[0] || null;
+};
 
-const findUserByEmail = (email) =>
-  db
-    .prepare('SELECT id, email, password_hash as passwordHash, role FROM users WHERE email = ?')
-    .get(email);
+const findUserById = async (id) => {
+  const { rows } = await query('SELECT id, email, role FROM users WHERE id = $1', [id]);
+  return rows[0] || null;
+};
 
-const findUserById = (id) =>
-  db.prepare('SELECT id, email, role FROM users WHERE id = ?').get(id);
-
-const createUser = (email, passwordHash, role = 'user') => {
-  const stmt = db.prepare(
-    'INSERT INTO users (email, password_hash, role) VALUES (@email, @passwordHash, @role)'
+const createUser = async (email, passwordHash, role = 'user') => {
+  const { rows } = await query(
+    'INSERT INTO users (email, password_hash, role) VALUES ($1, $2, $3) RETURNING id, email, role',
+    [email, passwordHash, role]
   );
-  const result = stmt.run({ email, passwordHash, role });
-  return findUserById(result.lastInsertRowid);
+  return rows[0];
 };
 
 module.exports = {

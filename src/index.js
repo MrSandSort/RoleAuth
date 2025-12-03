@@ -1,6 +1,7 @@
 require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
+const { initDb } = require('./db');
 const { seedSuperAdmin } = require('./seeds/seedSuperAdmin');
 const authRoutes = require('./routes/auth');
 const protectedRoutes = require('./routes/protected');
@@ -25,6 +26,7 @@ app.get('/health', (_req, res) => {
 const PORT = process.env.PORT || 4000;
 
 const start = async () => {
+  await initDb();
   await seedSuperAdmin();
   app.listen(PORT, () => {
     console.log(`Auth server running on port ${PORT}`);

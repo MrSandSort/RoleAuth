@@ -10,13 +10,13 @@ const seedSuperAdmin = async () => {
     return;
   }
 
-  const existing = findUserByEmail(email);
+  const existing = await findUserByEmail(email);
   if (existing) {
     return;
   }
 
   const passwordHash = await bcrypt.hash(password, 12);
-  createUser(email, passwordHash, 'superadmin');
+  await createUser(email, passwordHash, 'superadmin');
   console.log(`Seeded superadmin account for ${email}`);
 };
 

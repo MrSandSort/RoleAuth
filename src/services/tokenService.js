@@ -16,16 +16,16 @@ const issueAccessToken = (user) =>
     expiresIn: ACCESS_TOKEN_EXPIRES_IN,
   });
 
-const createRefreshToken = (userId) => {
-  purgeExpiredRefreshTokens();
+const createRefreshToken = async (userId) => {
+  await purgeExpiredRefreshTokens();
   const token = crypto.randomBytes(48).toString('hex');
   const refreshTokenExpiresAt = Date.now() + REFRESH_TOKEN_DAYS * 24 * 60 * 60 * 1000;
-  saveRefreshToken(token, userId, refreshTokenExpiresAt);
+  await saveRefreshToken(token, userId, refreshTokenExpiresAt);
   return { refreshToken: token, refreshTokenExpiresAt };
 };
 
-const rotateRefreshToken = (incomingRefreshToken) => {
-  const record = findRefreshToken(incomingRefreshToken);
+const rotateRefreshToken = async (incomingRefreshToken) => {
+  const record = await findRefreshToken(incomingRefreshToken);
   if (!record) {
     return null;
   }
@@ -35,16 +35,16 @@ const rotateRefreshToken = (incomingRefreshToken) => {
     return null;
   }
 
-  const user = findUserById(record.userId);
+  const user = await findUserById(record.userId);
   if (!user) {
-    deleteRefreshToken(incomingRefreshToken);
+    await deleteRefreshToken(incomingRefreshToken);
     return null;
   }
 
-  deleteRefreshToken(incomingRefreshToken);
+  await deleteRefreshToken(incomingRefreshToken);
 
   const accessToken = issueAccessToken(user);
-  const { refreshToken, refreshTokenExpiresAt } = createRefreshToken(user.id);
+  const { refreshToken, refreshTokenExpiresAt } = await createRefreshToken(user.id);
 
   return { accessToken, refreshToken, refreshTokenExpiresAt };
 };
