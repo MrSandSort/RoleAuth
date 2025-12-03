@@ -5,6 +5,7 @@ const { initDb } = require('./db');
 const { seedSuperAdmin } = require('./seeds/seedSuperAdmin');
 const authRoutes = require('./routes/auth');
 const protectedRoutes = require('./routes/protected');
+const storageRoutes = require('./routes/storage');
 
 const app = express();
 
@@ -18,6 +19,7 @@ app.use(express.json());
 
 app.use('/auth', authRoutes);
 app.use('/protected', protectedRoutes);
+app.use('/', storageRoutes);
 
 app.get('/health', (_req, res) => {
   res.json({ status: 'ok' });

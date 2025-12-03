@@ -25,6 +25,30 @@ const authRequired = async (req, res, next) => {
   }
 };
 
+const maybeAuth = async (req, res, next) => {
+  const header = req.headers.authorization;
+  if (!header) {
+    return next();
+  }
+
+  const [scheme, token] = header.split(' ');
+  if (scheme !== 'Bearer' || !token) {
+    return res.status(401).json({ error: 'Invalid Authorization header' });
+  }
+
+  try {
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    const user = await findUserById(decoded.sub);
+    if (!user) {
+      return res.status(401).json({ error: 'User not found' });
+    }
+    req.user = user;
+    next();
+  } catch (err) {
+    return res.status(401).json({ error: 'Invalid or expired token' });
+  }
+};
+
 const hasRole = (userRole, allowedRoles) =>
   allowedRoles.some((role) => roleRank[userRole] >= roleRank[role]);
 
@@ -42,5 +66,6 @@ const requireRole = (allowedRoles) => (req, res, next) => {
 
 module.exports = {
   authRequired,
+  maybeAuth,
   requireRole,
 };
