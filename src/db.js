@@ -35,6 +35,52 @@ const initDb = async () => {
   `);
 
   await query(`CREATE INDEX IF NOT EXISTS idx_refresh_tokens_user_id ON refresh_tokens(user_id);`);
+
+  await query(`
+    CREATE TABLE IF NOT EXISTS folders (
+      id SERIAL PRIMARY KEY,
+      owner_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+      name TEXT NOT NULL,
+      parent_id INTEGER REFERENCES folders(id) ON DELETE CASCADE,
+      created_at TIMESTAMPTZ DEFAULT NOW()
+    );
+  `);
+  await query(`CREATE INDEX IF NOT EXISTS idx_folders_owner ON folders(owner_id);`);
+  await query(`CREATE INDEX IF NOT EXISTS idx_folders_parent ON folders(parent_id);`);
+
+  await query(`
+    CREATE TABLE IF NOT EXISTS files (
+      id SERIAL PRIMARY KEY,
+      owner_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+      folder_id INTEGER REFERENCES folders(id) ON DELETE SET NULL,
+      s3_key TEXT NOT NULL UNIQUE,
+      filename TEXT NOT NULL,
+      size BIGINT,
+      content_type TEXT,
+      encrypted_key TEXT,
+      encryption_header JSONB,
+      hash TEXT,
+      created_at TIMESTAMPTZ DEFAULT NOW(),
+      updated_at TIMESTAMPTZ DEFAULT NOW()
+    );
+  `);
+  await query(`CREATE INDEX IF NOT EXISTS idx_files_owner ON files(owner_id);`);
+  await query(`CREATE INDEX IF NOT EXISTS idx_files_folder ON files(folder_id);`);
+
+  await query(`
+    CREATE TABLE IF NOT EXISTS file_shares (
+      id SERIAL PRIMARY KEY,
+      file_id INTEGER NOT NULL REFERENCES files(id) ON DELETE CASCADE,
+      signed_token TEXT NOT NULL UNIQUE,
+      expires_at TIMESTAMPTZ NOT NULL,
+      shared_with_user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+      created_by INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+      created_at TIMESTAMPTZ DEFAULT NOW()
+    );
+  `);
+  await query(`CREATE INDEX IF NOT EXISTS idx_file_shares_file ON file_shares(file_id);`);
+  await query(`CREATE INDEX IF NOT EXISTS idx_file_shares_expires ON file_shares(expires_at);`);
+  await query(`CREATE INDEX IF NOT EXISTS idx_file_shares_shared_with ON file_shares(shared_with_user_id);`);
 };
 
 module.exports = {
