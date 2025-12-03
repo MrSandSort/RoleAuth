@@ -40,11 +40,7 @@ const requireRole = (allowedRoles) => (req, res, next) => {
   next();
 };
 
-const issueToken = (user) =>
-  jwt.sign({ sub: user.id, role: user.role }, process.env.JWT_SECRET, { expiresIn: '1h' });
-
 module.exports = {
   authRequired,
   requireRole,
-  issueToken,
 };

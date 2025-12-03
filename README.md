@@ -10,18 +10,21 @@ Opinionated starter for authentication/authorization with role-based access cont
 ## Environment
 - `PORT` (default `4000`)
 - `JWT_SECRET` required; keep long/random
+- `ACCESS_TOKEN_EXPIRES_IN` (default `15m`)
+- `REFRESH_TOKEN_DAYS` (default `7`)
 - `SUPERADMIN_EMAIL` + `SUPERADMIN_PASSWORD` optional but recommended to seed the first superadmin
 
 ## API
-- `POST /auth/register` `{ email, password }` → creates a `user`, returns JWT
-- `POST /auth/login` `{ email, password }` → returns JWT
+- `POST /auth/register` `{ email, password }` → creates a `user`, returns the user (no tokens)
+- `POST /auth/login` `{ email, password }` → returns `{ accessToken, refreshToken, refreshTokenExpiresAt }`
+- `POST /auth/refresh` `{ refreshToken }` → returns rotated `{ accessToken, refreshToken, refreshTokenExpiresAt }`
 - `POST /auth/manage` `{ email, password, role }` → create `user|admin|superadmin` (requires `Authorization: Bearer <token>` with `superadmin`)
 - `GET /protected/me` → current user (auth required)
 - `GET /protected/admin` → admin+ only
 - `GET /protected/superadmin` → superadmin only
 - `GET /health` → simple status
 
-JWTs expire after 1 hour. Include them with `Authorization: Bearer <token>`.
+Access tokens expire after `ACCESS_TOKEN_EXPIRES_IN` (default 15m). Refresh tokens expire after `REFRESH_TOKEN_DAYS` (default 7 days) and are rotated on every `/auth/refresh` call. Include access tokens with `Authorization: Bearer <token>`.
 
 ## Notes
 - Data lives in `data/app.db` (SQLite); remove the file to reset local data.

@@ -1,7 +1,7 @@
 const bcrypt = require('bcrypt');
-const { issueToken } = require('../middleware/auth');
-const { credentialsSchema, manageUserSchema } = require('../schemas/authSchema');
+const { credentialsSchema, manageUserSchema, refreshTokenSchema } = require('../schemas/authSchema');
 const { createUser, findUserByEmail } = require('../models/userModel');
+const { issueAccessToken, createRefreshToken, rotateRefreshToken } = require('../services/tokenService');
 
 const register = async (req, res) => {
   const parsed = credentialsSchema.safeParse(req.body);
@@ -16,9 +16,8 @@ const register = async (req, res) => {
 
   const passwordHash = await bcrypt.hash(password, 12);
   const user = createUser(email, passwordHash, 'user');
-  const token = issueToken(user);
 
-  return res.status(201).json({ user, token });
+  return res.status(201).json({ user });
 };
 
 const createManagedUser = async (req, res) => {
@@ -54,12 +53,28 @@ const login = async (req, res) => {
     return res.status(401).json({ error: 'Invalid credentials' });
   }
 
-  const token = issueToken(user);
-  return res.json({ user: { id: user.id, email: user.email, role: user.role }, token });
+  const accessToken = issueAccessToken(user);
+  const { refreshToken, refreshTokenExpiresAt } = createRefreshToken(user.id);
+  return res.json({ accessToken, refreshToken, refreshTokenExpiresAt });
+};
+
+const refreshTokens = (req, res) => {
+  const parsed = refreshTokenSchema.safeParse(req.body);
+  if (!parsed.success) {
+    return res.status(400).json({ error: parsed.error.flatten().fieldErrors });
+  }
+
+  const rotated = rotateRefreshToken(parsed.data.refreshToken);
+  if (!rotated) {
+    return res.status(401).json({ error: 'Invalid or expired refresh token' });
+  }
+
+  return res.json(rotated);
 };
 
 module.exports = {
   register,
   createManagedUser,
   login,
+  refreshTokens,
 };
