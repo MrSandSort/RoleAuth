@@ -5,6 +5,7 @@ const { createFileShare, findShareByToken, deleteShare, purgeExpiredShares } = r
 const { findUserById } = require('../models/userModel');
 const { getDownloadUrl } = require('../services/storageService');
 
+// Share controller: creates signed share links with optional user scoping and redeems them for temporary download URLs.
 const createShareLink = async (req, res) => {
   const fileId = Number(req.params.id);
   if (Number.isNaN(fileId)) {

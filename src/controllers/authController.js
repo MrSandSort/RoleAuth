@@ -3,6 +3,7 @@ const { credentialsSchema, manageUserSchema, refreshTokenSchema } = require('../
 const { createUser, findUserByEmail } = require('../models/userModel');
 const { issueAccessToken, createRefreshToken, rotateRefreshToken } = require('../services/tokenService');
 
+// Auth controller: validates credentials, manages user creation, and issues/rotates JWT access + refresh tokens.
 const register = async (req, res) => {
   const parsed = credentialsSchema.safeParse(req.body);
   if (!parsed.success) {

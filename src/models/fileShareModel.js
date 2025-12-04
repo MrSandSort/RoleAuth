@@ -1,5 +1,6 @@
 const { query } = require('../db');
 
+// File share model: issues share records with signed tokens, resolves them, deletes specific shares, and purges expired ones.
 const createFileShare = async ({ fileId, signedToken, expiresAt, sharedWithUserId = null, createdBy }) => {
   const { rows } = await query(
     `INSERT INTO file_shares (file_id, signed_token, expires_at, shared_with_user_id, created_by)

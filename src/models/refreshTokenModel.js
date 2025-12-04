@@ -1,5 +1,6 @@
 const { query } = require('../db');
 
+// Refresh token model: stores issued tokens, looks them up, deletes them, and cleans up expired records.
 const saveRefreshToken = async (token, userId, expiresAt) => {
   await query(
     'INSERT INTO refresh_tokens (token, user_id, expires_at) VALUES ($1, $2, $3)',

@@ -4,6 +4,7 @@ const { findFolderById } = require('../models/folderModel');
 const { createFileMetadata, listFilesInFolder, findFileById } = require('../models/fileModel');
 const { generateObjectKey, getUploadUrl, getDownloadUrl } = require('../services/storageService');
 
+// File controller: validates upload/download requests, persists file metadata, and returns signed storage URLs.
 const createUploadRequest = async (req, res) => {
   const parsed = uploadRequestSchema.safeParse(req.body);
   if (!parsed.success) {

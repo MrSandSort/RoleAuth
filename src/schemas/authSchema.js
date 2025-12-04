@@ -1,5 +1,6 @@
 const { z } = require('zod');
 
+// Zod schemas for auth flows: credential validation, managed user creation, and refresh token payloads.
 const credentialsSchema = z.object({
   email: z.string().email(),
   password: z.string().min(8),

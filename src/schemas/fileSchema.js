@@ -1,5 +1,6 @@
 const { z } = require('zod');
 
+// Zod schemas for files/folders/shares: validate creation payloads, uploads, listing queries, and share options.
 const createFolderSchema = z.object({
   name: z.string().min(1),
   parentId: z.number().int().positive().optional().nullable(),
@@ -11,7 +12,8 @@ const uploadRequestSchema = z.object({
   size: z.number().int().nonnegative(),
   folderId: z.number().int().positive().optional().nullable(),
   encryptedKey: z.string().min(1),
-  encryptionHeader: z.record(z.any()),
+  // Explicit key/value types prevent Zod from receiving an undefined keyType when clients send malformed payloads.
+  encryptionHeader: z.record(z.string(), z.any()),
   hash: z.string().min(1).optional(),
 });
 

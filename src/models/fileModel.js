@@ -1,5 +1,6 @@
 const { query } = require('../db');
 
+// File model: persists file metadata, lists files per owner/folder, and fetches individual file records.
 const createFileMetadata = async ({
   ownerId,
   folderId = null,

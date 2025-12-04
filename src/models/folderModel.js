@@ -1,5 +1,6 @@
 const { query } = require('../db');
 
+// Folder model: creates folders, lists children for an owner/parent, and fetches individual folder records.
 const createFolder = async (ownerId, name, parentId = null) => {
   const { rows } = await query(
     `INSERT INTO folders (owner_id, name, parent_id)
