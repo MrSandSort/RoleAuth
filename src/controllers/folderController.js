@@ -3,6 +3,7 @@ const { createFolder, listFolders, findFolderById } = require('../models/folderM
 const { listFilesInFolder } = require('../models/fileModel');
 
 // Folder controller: creates nested folders and lists folder contents scoped to the authenticated owner.
+
 const createFolderHandler = async (req, res) => {
   const parsed = createFolderSchema.safeParse(req.body);
   if (!parsed.success) {
